@@ -117,7 +117,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>org.laarryy.wazowski.Main</mainClass>
+                            <mainClass>dev.laarryy.wazowski.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
