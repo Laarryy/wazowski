@@ -29,8 +29,8 @@ public class Constants {
     public static final String ROLE_TELEPORTS_UPDATES = "722746264801902654";
     public static final String ROLE_COOLDOWNS_UPDATES = "722746268484501536";
     public static final String ROLE_KITS_UPDATES = "722746269797187705";
-    public static final String ROLE_GUNPOWDER_UPDATES = "674701227916787742";
-    public static final String ROLE_CHATGAMES_UPDATES = "675063350287138827";
+    public static final String ROLE_GUNPOWDER_UPDATES = "737557565692575801";
+    public static final String ROLE_CHATGAMES_UPDATES = "737557662442717265";
 
     //Users (literally just zml right now)
     public static final String USER_ZML = "97139815404810240";

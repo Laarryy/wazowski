@@ -27,14 +27,14 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
 
     public RoleReactionCommand(DiscordApi api) {
         api.addListener(this);
-        roleMap.put("\uD83C\uDF4D", Constants.ROLE_CHAT_UPDATES);
-        roleMap.put("\uD83C\uDF6A", Constants.ROLE_PROFESSIONS_UPDATES);
-        roleMap.put("\uD83C\uDF54", Constants.ROLE_SYSOUT_UPDATES);
-        roleMap.put("\ud83C\uDF2F", Constants.ROLE_TELEPORTS_UPDATES);
-        roleMap.put("\uD83C\uDF7A", Constants.ROLE_COOLDOWNS_UPDATES);
-        roleMap.put("\uD83D\uDDDD", Constants.ROLE_KITS_UPDATES);
-        roleMap.put("\uD83C\uDF49", Constants.ROLE_GUNPOWDER_UPDATES);
-        roleMap.put("\uD83C\uDF47", Constants.ROLE_CHATGAMES_UPDATES);
+        roleMap.put("\uD83D\uDCAD", Constants.ROLE_CHAT_UPDATES);
+        roleMap.put("\uD83D\uDC68", Constants.ROLE_PROFESSIONS_UPDATES);
+        roleMap.put("\uD83D\uDC7D", Constants.ROLE_SYSOUT_UPDATES);
+        roleMap.put("\uD83D\uDEEB", Constants.ROLE_TELEPORTS_UPDATES);
+        roleMap.put("\uD83E\uDDCA", Constants.ROLE_COOLDOWNS_UPDATES);
+        roleMap.put("\uD83D\uDD28", Constants.ROLE_KITS_UPDATES);
+        roleMap.put("\uD83D\uDD2B", Constants.ROLE_GUNPOWDER_UPDATES);
+        roleMap.put("\uD83E\uDD9C", Constants.ROLE_CHATGAMES_UPDATES);
 
     }
 
@@ -126,19 +126,19 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
 
         embed.setColor(Color.GREEN);
         embed.addField("Subscribe to plugin updates",
-                "```Click the \uD83C\uDF4D to subscribe to SimpleChat" +
-                        "\nClick the \uD83C\uDF6A to subscribe to Professions" +
-                        "\nClick the \uD83C\uDF54 to subscribe to Sysout" +
-                        "\nClick the \ud83C\uDF2F to subscribe to Teleports" +
-                        "\nClick the \uD83C\uDF7A to subscribe to Cooldowns" +
-                        "\nClick the \ud83d\udddd\ufe0f to subscribe to Kits" +
-                        "\nClick the \uD83C\uDF49 to subscribe to Gunpowder" +
-                        "\nClick the \uD83C\uDF47 to subscribe to ChatGames```");
+                "```Click the \uD83D\uDCAD to subscribe to SimpleChat" +
+                        "\nClick the \uD83D\uDC68 to subscribe to Professions" +
+                        "\nClick the \uD83D\uDC7D to subscribe to Sysout" +
+                        "\nClick the \uD83D\uDEEB to subscribe to Teleports" +
+                        "\nClick the \uD83E\uDDCA to subscribe to Cooldowns" +
+                        "\nClick the \uD83D\uDD28 to subscribe to Kits" +
+                        "\nClick the \uD83D\uDD2B to subscribe to Gunpowder" +
+                        "\nClick the \uD83E\uDD9C to subscribe to ChatGames```");
         return embed;
     }
 
     public void onReactionAdd(ReactionAddEvent event) {
-        if (event.getUser().isYourself()) {
+        if (event.getUser().isYourself() || !storage.isPoll(event.getMessageId())) {
             return;
         }
         if (!event.getReaction().isPresent()) {
