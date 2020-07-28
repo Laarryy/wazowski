@@ -33,6 +33,8 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
         roleMap.put("\ud83C\uDF2F", Constants.ROLE_TELEPORTS_UPDATES);
         roleMap.put("\uD83C\uDF7A", Constants.ROLE_COOLDOWNS_UPDATES);
         roleMap.put("\uD83D\uDDDD", Constants.ROLE_KITS_UPDATES);
+        roleMap.put("\uD83C\uDF49", Constants.ROLE_GUNPOWDER_UPDATES);
+        roleMap.put("\uD83C\uDF47", Constants.ROLE_CHATGAMES_UPDATES);
 
     }
 
@@ -74,23 +76,29 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
             cmd.delete();
             try {
                 switch (channel.getIdAsString()) {
-                    case "426460619277991936": //SimpleChat
+                    case "732527807216877608": //SimpleChat
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_CHAT_UPDATES).get());
                         break;
-                    case "426460663498407948": //Professions
+                    case "737570032766287892": //Professions
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_PROFESSIONS_UPDATES).get());
                         break;
-                    case "426460690136694795": //Sysout
+                    case "737570162584191057": //Sysout
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_SYSOUT_UPDATES).get());
                         break;
-                    case "479919913067216897": //Teleports
+                    case "737570139096219668": //Teleports
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_TELEPORTS_UPDATES).get());
                         break;
-                    case "430125681645453325": //Cooldowns
+                    case "737570103549362207": //Cooldowns
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_COOLDOWNS_UPDATES).get());
                         break;
-                    case "632427764707753994": //Kits
+                    case "737570183417430087": //Kits
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_KITS_UPDATES).get());
+                        break;
+                    case "737570083357851698": //Gunpowder
+                        broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_GUNPOWDER_UPDATES).get());
+                        break;
+                    case "737570268708339772": //Chatgames
+                        broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_CHATGAMES_UPDATES).get());
                         break;
                     default:
                         channel.sendMessage(user.getMentionTag(), new EmbedBuilder().setTitle("Invalid update channel").setColor(Color.RED));
@@ -123,7 +131,9 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
                         "\nClick the \uD83C\uDF54 to subscribe to Sysout" +
                         "\nClick the \ud83C\uDF2F to subscribe to Teleports" +
                         "\nClick the \uD83C\uDF7A to subscribe to Cooldowns" +
-                        "\nClick the \ud83d\udddd\ufe0f to subscribe to Kits```");
+                        "\nClick the \ud83d\udddd\ufe0f to subscribe to Kits" +
+                        "\nClick the \uD83C\uDF49 to subscribe to Gunpowder" +
+                        "\nClick the \uD83C\uDF47 to subscribe to ChatGames```");
         return embed;
     }
 
@@ -132,15 +142,19 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
             return;
         }
         if (!event.getReaction().isPresent()) {
+            event.requestReaction().thenAccept(reaction -> {
+                if (reaction.isPresent()) {
+                    if (storage.isPoll(event.getMessageId()) && reaction.get().containsYou()) {
+                        updateRole(event.getUser(), roleMap.get(reaction.get().getEmoji().asUnicodeEmoji().get()), event.getServer().get(), "add");
+                    } else {
+                        event.removeReaction();
+                    }
+                }
+            });
+        } else if (storage.isPoll(event.getMessageId()) && event.getReaction().get().containsYou()) {
+            updateRole(event.getUser(), roleMap.get(event.getReaction().get().getEmoji().asUnicodeEmoji().get()), event.getServer().get(), "add");
+        } else {
             event.removeReaction();
-            return;
-        }
-        if (storage.ispoll(event.getMessageId())) {
-            if (event.getReaction().get().containsYou()) {
-                updateRole(event.getUser(), roleMap.get(event.getReaction().get().getEmoji().asUnicodeEmoji().get()), event.getServer().get(), "add");
-            } else {
-                event.removeReaction();
-            }
         }
     }
 
@@ -148,7 +162,7 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
         if (event.getUser().isYourself()) {
             return;
         }
-        if (storage.ispoll(event.getMessageId()) && event.getReaction().isPresent() && event.getReaction().get().containsYou()) {
+        if (storage.isPoll(event.getMessageId()) && event.getReaction().isPresent() && event.getReaction().get().containsYou()) {
             updateRole(event.getUser(), roleMap.get(event.getReaction().get().getEmoji().asUnicodeEmoji().get()), event.getServer().get(), "remove");
         }
     }

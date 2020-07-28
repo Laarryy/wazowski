@@ -68,7 +68,9 @@ public class EssentialsXCommand implements CommandExecutor {
             JsonNode essxItemDB = mapper.readTree(new File("./essx_items.json"));
 
             Request request = new Request.Builder().url(itemdbURL).build();
-            JsonNode essxItemDB2 =  mapper.readTree(Objects.requireNonNull(client.newCall(request).execute().body()).string().replace("#version: ${full.version}", ""));
+            JsonNode essxItemDB2 =  mapper.readTree(Objects.requireNonNull(client.newCall(request).execute().body()).string().replace("#version: ${full.version}\n" +
+                    "# This file is for internal EssentialsX usage.\n" +
+                    "# We recommend using custom_items.yml to add custom aliases.", ""));
 
             if (essxItemDB2.size() > essxItemDB.size()) {
                 System.out.println("Updating Essentials ItemDB.");
