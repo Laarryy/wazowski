@@ -167,7 +167,7 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
         }
     }
 
-    public void updateRole(User user, String role, Server server, String type) { //TODO
+    public void updateRole(User user, String role, Server server, String type) {
         Role target = server.getRoleById(role).get();
         if (user.getRoles(server).stream().anyMatch(role1 -> role1.getIdAsString().equalsIgnoreCase(role)) && type.equalsIgnoreCase("remove")) {
             user.removeRole(target, "Role Poll");

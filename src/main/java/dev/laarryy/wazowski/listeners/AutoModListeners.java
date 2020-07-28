@@ -128,6 +128,26 @@ public class AutoModListeners implements MessageCreateListener, CommandExecutor 
         saveModData();
     }
 
+    @Command(aliases = {"!pingokglobal", ".pingokglobal"}, usage = "!pingokglobal", description = "Pings anywhere are ok.")
+    public void onGlobalOk(DiscordApi api, String[] args, TextChannel channel, User user, Message message, Server server) {
+        if (!(server.canKickUsers(user) || hasProtectedRole(user.getRoles(server)))) {
+            return;
+        }
+        try {
+            if (data.globalExempts.get(user.getId()).contains(server.getIdAsString())) {
+                data.globalExempts.get(user.getId()).remove(server.getIdAsString());
+                message.addReaction("\ud83d\ude08");
+            } else {
+                data.globalExempts.computeIfAbsent(user.getId(), aList -> new TreeSet<>()).add(server.getIdAsString());
+                message.addReaction("\ud83d\ude01");
+            }
+        } catch (Exception e) {
+            data.globalExempts.computeIfAbsent(user.getId(), aList -> new TreeSet<>()).add(server.getIdAsString());
+            message.addReaction("\ud83d\ude01");
+        }
+        saveModData();
+    }
+
     @Command(aliases = {"!fileblacklist", ".fileblacklist"}, usage = "!fileblacklist <Extension>", description = "Adds a file blacklist")
     public void addBlackList(DiscordApi api, String[] args, TextChannel channel, MessageAuthor author, Message message) {
         if (author.canBanUsersFromServer() && args.length >= 1) {
@@ -215,6 +235,9 @@ public class AutoModListeners implements MessageCreateListener, CommandExecutor 
                     if (data.exempts.containsKey(user.getId()) && data.exempts.get(user.getId()).contains(message.getChannel().getIdAsString())) {
                         continue;
                     }
+                    if (data.globalExempts.containsKey(user.getId()) && data.globalExempts.get((user.getId())).contains(message.getServer().get().getIdAsString())) {
+                        continue;
+                    }
                     tracker.updatePings();
                     warn = true;
                 }
@@ -295,6 +318,7 @@ public class AutoModListeners implements MessageCreateListener, CommandExecutor 
 
     static class ModerationData {
         public Map<Long, Set<String>> exempts = new HashMap<>();
+        public Map<Long, Set<String>> globalExempts = new HashMap<>();
         public List<String> blacklistedFiles;
         public List<String> censoredWords;
     }
