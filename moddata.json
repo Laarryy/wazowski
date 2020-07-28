@@ -1,11 +1,12 @@
 {
   "data" : {
     "exempts" : {
-      "347959633518002177" : [ "709909618591269077", "723124135198326795" ],
+      "347959633518002177" : [ "723124135198326795" ],
       "184165847940464641" : [ "709909618591269074" ]
     },
     "globalExempts" : {
-      "347959633518002177" : [ "709909618591269074" ]
+      "347959633518002177" : [ ],
+      "184165847940464641" : [ "709909618591269074" ]
     },
     "blacklistedFiles" : [ ".jar", ".exe", ".zip" ],
     "censoredWords" : [ "discord.gg", "discordapp.com/invite", "blackspigot", "amazingsexdating.com", "whatsappx.com", "bestoffersx.com", "kidsearncash.com", "l10n\\_2\\.x", "38875", "getbukkit" ]

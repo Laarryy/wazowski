@@ -76,7 +76,7 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
             cmd.delete();
             try {
                 switch (channel.getIdAsString()) {
-                    case "732527807216877608": //SimpleChat
+                    case "732527807216877608": //Carbon
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_CHAT_UPDATES).get());
                         break;
                     case "737570032766287892": //Professions
@@ -126,7 +126,7 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
 
         embed.setColor(Color.GREEN);
         embed.addField("Subscribe to plugin updates",
-                "```Click the \uD83D\uDCAD to subscribe to SimpleChat" +
+                "```Click the \uD83D\uDCAD to subscribe to Carbon" +
                         "\nClick the \uD83D\uDC68 to subscribe to Professions" +
                         "\nClick the \uD83D\uDC7D to subscribe to Sysout" +
                         "\nClick the \uD83D\uDEEB to subscribe to Teleports" +
