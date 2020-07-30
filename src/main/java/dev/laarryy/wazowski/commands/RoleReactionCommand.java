@@ -71,7 +71,7 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
     TODO: Map the channels instead.
      */
     @Command(aliases = {"!update", ".update"}, usage = "!update", description = "Polls users for update roles")
-    public void onUpdate(DiscordApi api, TextChannel channel, User user, Server server, String[] args, Message cmd) {
+    public void onUpdate(TextChannel channel, User user, Server server, String[] args, Message cmd) {
         if (server.canKickUsers(user)) {
             cmd.delete();
             try {
@@ -98,6 +98,9 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_GUNPOWDER_UPDATES).get());
                         break;
                     case "737570268708339772": //Chatgames
+                        broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_CHATGAMES_UPDATES).get());
+                        break;
+                    case "738239418015678574": //Test
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_CHATGAMES_UPDATES).get());
                         break;
                     default:
