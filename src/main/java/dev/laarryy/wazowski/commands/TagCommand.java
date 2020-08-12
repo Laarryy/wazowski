@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.btobastian.sdcf4j.Command;
 import de.btobastian.sdcf4j.CommandExecutor;
+import dev.laarryy.wazowski.util.RoleUtil;
 import org.apache.commons.lang.ArrayUtils;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
@@ -28,9 +30,9 @@ import java.util.StringJoiner;
 
 public class TagCommand implements CommandExecutor, MessageCreateListener {
 
-    private Map<String, Factoid> tagMap = new HashMap<>();
+    private final Map<String, Factoid> tagMap = new HashMap<>();
     EmbedUtil util = new EmbedUtil();
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public TagCommand(DiscordApi api) {
         api.addListener(this);
@@ -46,23 +48,26 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
     }
 
     @Command(aliases = {"!tagraw", "?tagraw"}, usage = "!tagraw <name>", description = "Send the raw tag message to the channel.")
-    public void onTagRaw(DiscordApi api, TextChannel channel, String[] args, User user, Server server) {
-        if (args.length >= 1 && tagMap.containsKey(args[0].toLowerCase()) && server.canKickUsers(user)) {
+    public void onTagRaw(Message message, TextChannel channel, String[] args, User user, Server server) {
+        if (args.length >= 1 && tagMap.containsKey(args[0].toLowerCase()) && RoleUtil.isStaff(user, server)) {
             Factoid userTag = tagMap.get(args[0].toLowerCase());
             channel.sendMessage(user.getMentionTag(), new EmbedBuilder().setTitle(args[0] + " info").addInlineField("Created by", String.format("<@%s>", userTag.owner)).addInlineField("Modified on", Date.from(Instant.parse(userTag.modified)).toString()).addField("Content",String.format("```%s```", userTag.content)));
-        }
+        } else { message.addReaction("\uD83D\uDEAB"); }
     }
 
     @Command(aliases = {"!tagfile", "?tagfile"}, usage = "!tagfile", description = "Gets the tag file")
-    public void onTagFile(TextChannel channel, User user, Server server) {
-        if (server.canBanUsers(user)) {
+    public void onTagFile(TextChannel channel, User user, Server server, Message message) {
+        if (RoleUtil.isStaff(user, server)) {
             channel.sendMessage(new File("./factoids.json"));
-        }
+        } message.addReaction("\uD83D\uDEAB");
     }
 
     @Command(aliases = {"!tags", "?tags"}, usage = "!tags [filter]", description = "List all currently enabled tags.")
-    public void onList(DiscordApi api, TextChannel channel, Server server, User user) {
-        if (!server.canKickUsers(user)) return;
+    public void onList(DiscordApi api, TextChannel channel, Server server, User user, Message message) {
+        if (!RoleUtil.isStaff(user, server) || !RoleUtil.isLegit(user, server)) {
+            message.addReaction("\uD83D\uDEAB");
+            return;
+        }
         String s = "";
         ArrayList<String> tagsList = new ArrayList<>(tagMap.keySet());
         Collections.sort(tagsList);
@@ -73,11 +78,11 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
     }
 
     @Command(aliases = {"!tagset", "?tagset"}, usage = "!tagset <name> [message]", description = "Set a new tag")
-    public void onSet(DiscordApi api, TextChannel channel, String[] args, User user, Server server) {
-        if (args.length >= 2 && server.canBanUsers(user)) {
+    public void onSet(Message message, TextChannel channel, String[] args, User user, Server server) {
+        if (args.length >= 2 && RoleUtil.isStaff(user, server)) {
             String key = args[0].toLowerCase();
             if (key.contains("\\n")) {
-                channel.sendMessage("Please do not be a DoNotSpamPls, pls");
+                channel.sendMessage("How did you even think to try using that series of characters in a message? Regardless, I will simply not allow it!");
                 return;
             }
             StringJoiner sb = new StringJoiner(" ");
@@ -88,22 +93,22 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
             tagMap.put(key, newTag);
             saveTags();
             channel.sendMessage(new EmbedBuilder().setTitle("Tag set!").setColor(Color.GREEN));
-        }
+        } else { message.addReaction("\uD83D\uDEAB"); }
     }
 
     @Command(aliases = {"!tagunset", "?tagunset"}, usage = "!tagunset <name> [message]", description = "Unset a tag")
-    public void onUnset(DiscordApi api, TextChannel channel, String[] args, User user, Server server) {
-        if (args.length >= 1 && server.canBanUsers(user)) {
+    public void onUnset(Message message, TextChannel channel, String[] args, User user, Server server) {
+        if (args.length >= 1 && RoleUtil.isStaff(user, server)) {
             tagMap.remove(args[0].toLowerCase());
             saveTags();
             channel.sendMessage(new EmbedBuilder().setTitle("Tag removed!").setColor(Color.GREEN));
-        }
+        } else { message.addReaction("\uD83D\uDEAB"); }
     }
 
     @Override
     public void onMessageCreate(MessageCreateEvent ev) {
         String message = ev.getMessage().getContent();
-        if (message.startsWith("?") && message.length() >= 2) {
+        if ((message.startsWith("?") || message.startsWith("!") || message.startsWith(".")) && message.length() >= 2) {
             String[] args = message.split(" ");
             String tag = args[0].substring(1).toLowerCase();
             args = (String[]) ArrayUtils.remove(args, 0);
@@ -161,7 +166,7 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
         }
 
         Factoid() {
-            this.owner = "Mike Wazowski";
+            this.owner = "Servercraft";
             this.name = "";
             this.content = "";
             this.modified = Instant.now().toString();
@@ -169,3 +174,4 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
     }
 
 }
+

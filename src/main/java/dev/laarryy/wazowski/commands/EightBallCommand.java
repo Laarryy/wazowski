@@ -2,8 +2,10 @@ package dev.laarryy.wazowski.commands;
 
 import de.btobastian.sdcf4j.Command;
 import de.btobastian.sdcf4j.CommandExecutor;
+import dev.laarryy.wazowski.util.ChannelUtil;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.user.User;
 
@@ -33,9 +35,9 @@ public class EightBallCommand implements CommandExecutor {
     }
 
     @Command(aliases = {"!8ball"}, usage = "!8ball", description = "Asks the all knowing 8ball")
-    public void onCommand(DiscordApi api, TextChannel channel, User user, String[] args) {
-        if (args.length == 0) {
-            channel.sendMessage(user.getMentionTag() + " `!8ball <question>`");
+    public void onCommand(Message command, TextChannel channel, User user, String[] args) {
+        if (args.length == 0 || !ChannelUtil.isNonPublicChannel(channel) || !ChannelUtil.isOffTopic(channel)) {
+            command.addReaction("\uD83D\uDEAB");
             return;
         }
         channel.sendMessage(new EmbedBuilder().setTitle("Mike shakes the magic 8ball..").setImage(img)).thenAcceptAsync(message -> {

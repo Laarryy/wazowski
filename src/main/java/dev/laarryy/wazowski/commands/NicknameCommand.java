@@ -3,6 +3,7 @@ package dev.laarryy.wazowski.commands;
 import de.btobastian.sdcf4j.Command;
 import de.btobastian.sdcf4j.CommandExecutor;
 import dev.laarryy.wazowski.Constants;
+import dev.laarryy.wazowski.util.RoleUtil;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.server.Server;
@@ -14,7 +15,7 @@ public class NicknameCommand implements CommandExecutor {
 
     @Command(aliases = {"!setnick", ".setnick"}, usage = "!setnick <name>", description = "Sets the nickname of the bot")
     public void onCommand(DiscordApi api, String[] args, User user, Server server) {
-        if (hasPermission(user.getRoles(server))) {
+        if (RoleUtil.isStaff(user, server)) {
             if (args.length == 1) {
                 api.getYourself().updateNickname(server, args[0]);
             } else {
@@ -22,14 +23,6 @@ public class NicknameCommand implements CommandExecutor {
             }
         }
     }
-
-    public Boolean hasPermission(List<Role> roles) { //TODO one class to rule them all
-        for (Role role : roles) {
-            String roleId = role.getIdAsString();
-            if ((roleId.equals(Constants.ROLE_MODERATOR) || roleId.equals(Constants.ROLE_ADMIN))) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
+
+

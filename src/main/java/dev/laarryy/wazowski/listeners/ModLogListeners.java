@@ -6,6 +6,7 @@ import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.auditlog.AuditLog;
 import org.javacord.api.entity.auditlog.AuditLogActionType;
 import org.javacord.api.entity.auditlog.AuditLogEntry;
+import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
@@ -167,6 +168,16 @@ public class ModLogListeners implements MessageEditListener, MessageDeleteListen
                 ev.getUser().addRole((member.get()));
             }
         }
+        Optional<ServerTextChannel> general = api.getServerTextChannelById(Constants.CHANNEL_GENERAL);
+        Optional<ServerTextChannel> rules = api.getServerTextChannelById(Constants.CHANNEL_RULES);
+
+        rules.ifPresent(rulesTextChannel ->
+                general.ifPresent(generalTextChannel ->
+                        generalTextChannel.sendMessage("Welcome "
+                            + ev.getUser().getMentionTag()
+                            + "! Hop on over to "
+                            + rulesTextChannel.getMentionTag()
+                            + ", read them, and get yourself some roles!")));
         // Log it
         EmbedBuilder embed = new EmbedBuilder();
 

@@ -2,6 +2,7 @@ package dev.laarryy.wazowski.commands;
 
 import de.btobastian.sdcf4j.Command;
 import de.btobastian.sdcf4j.CommandExecutor;
+import dev.laarryy.wazowski.util.RoleUtil;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.Message;
@@ -16,17 +17,22 @@ import java.net.URL;
 public class AvatarCommand implements CommandExecutor {
 
     @Command(aliases = {"!avatar", ".avatar"}, usage = "!avatar <User>", description = "Shows the users' avatar")
-    public void onCommand(DiscordApi api, String[] args, TextChannel channel, Message message, Server server) {
+    public void onCommand(User cmdUser, String[] args, TextChannel channel, Message message, Server server) {
         if (args.length >= 1) {
-            if (message.getMentionedUsers().size() >= 1) {
+            if ((message.getMentionedUsers().size() >= 1) && cmdUser.getMentionTag().equals(args[0])) {
                 channel.sendMessage(new EmbedBuilder().setImage(message.getMentionedUsers().get(0).getAvatar()));
                 return;
-            }
-            for (User user : server.getMembers()) {
-                if (user.getName().equalsIgnoreCase(args[0])) {
-                    channel.sendMessage(new EmbedBuilder().setImage(user.getAvatar())); //TODO LAAAARGER
-                    return;
+            } else if (RoleUtil.isStaff(cmdUser, server) && message.getMentionedUsers().size() >= 1) {
+                channel.sendMessage(new EmbedBuilder().setImage(message.getMentionedUsers().get(0).getAvatar()));
+            } else if (RoleUtil.isStaff(cmdUser, server)) {
+                for (User user : server.getMembers()) {
+                    if (user.getName().equalsIgnoreCase(args[0])) {
+                        channel.sendMessage(new EmbedBuilder().setImage(user.getAvatar())); //TODO LAAAARGER
+                        return;
+                    }
                 }
+            } else {
+                message.addReaction("\uD83D\uDEAB");
             }
         }
     }

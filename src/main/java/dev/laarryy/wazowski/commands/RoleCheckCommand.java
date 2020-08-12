@@ -2,6 +2,7 @@ package dev.laarryy.wazowski.commands;
 
 import de.btobastian.sdcf4j.Command;
 import de.btobastian.sdcf4j.CommandExecutor;
+import dev.laarryy.wazowski.util.RoleUtil;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.permission.Role;
@@ -13,21 +14,23 @@ import java.util.stream.Collectors;
 public class RoleCheckCommand implements CommandExecutor {
 
     @Command(aliases = {"!rolecheck", ".rolecheck"}, usage = "!rolecheck <User>", description = "Checks users' role")
-    public void onCommand(TextChannel channel, String[] args, Message message, Server server) {
-        if (args.length >= 1) {
-            String string = "User Roles```";
-            if (message.getMentionedUsers().size() >= 1) {
-                for (User user : message.getMentionedUsers()) {
-                    channel.sendMessage("User Roles for " + user.getName() + String.format("```%s```", user.getRoles(server).stream().map(Role::getName).collect(Collectors.joining(", "))));
+    public void onCommand(TextChannel channel, String[] args, Message message, Server server, User user) {
+        if (message.getUserAuthor().isPresent()) {
+            if (args.length >= 1 && RoleUtil.isStaff(user, server)) {
+                String string = "User Roles```";
+                if (message.getAuthor().canKickUsersFromServer() || message.getMentionedUsers().size() >= 1) {
+                    for (User mentionedUser : message.getMentionedUsers()) {
+                        channel.sendMessage("User Roles for " + mentionedUser.getName() + String.format("```%s```", mentionedUser.getRoles(server).stream().map(Role::getName).collect(Collectors.joining(", "))));
+                    }
+                    return;
                 }
-                return;
-            }
-            for (User user : server.getMembers()) {
-                if (user.getName().equalsIgnoreCase(args[0])) {
-                    channel.sendMessage("User Roles for " + user.getName() + String.format("```%s```", user.getRoles(server).stream().map(Role::getName).collect(Collectors.joining(", "))));
-                    break;
+                for (User mentionedUser : server.getMembers()) {
+                    if (RoleUtil.isStaff(user, server) || user.getName().equalsIgnoreCase(args[0])) {
+                        channel.sendMessage("User Roles for " + mentionedUser.getName() + String.format("```%s```", mentionedUser.getRoles(server).stream().map(Role::getName).collect(Collectors.joining(", "))));
+                        break;
+                    }
                 }
-            }
+            } else message.addReaction("\uD83D\uDEAB");
         }
     }
 }

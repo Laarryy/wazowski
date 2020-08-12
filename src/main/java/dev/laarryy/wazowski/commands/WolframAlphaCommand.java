@@ -2,10 +2,13 @@ package dev.laarryy.wazowski.commands;
 
 import de.btobastian.sdcf4j.Command;
 import de.btobastian.sdcf4j.CommandExecutor;
+import dev.laarryy.wazowski.util.ChannelUtil;
+import dev.laarryy.wazowski.util.RoleUtil;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
+import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 
 import java.awt.*;
@@ -18,20 +21,24 @@ import java.util.stream.Collectors;
 
 public class WolframAlphaCommand implements CommandExecutor {
 
-    private String query = "https://api.wolframalpha.com/v1/result?i=<QUERY>&appid=PUJ6L4-JT7RJGL74K&";
-    private String queryLink = "https://www.wolframalpha.com/input/?i=<QUERY>";
-    private String key = "DEMO";
+    private final String query = "https://api.wolframalpha.com/v1/result?i=<QUERY>&appid=PUJ6L4-JT7RJGL74K&";
+    private final String queryLink = "https://www.wolframalpha.com/input/?i=<QUERY>";
+    private final String key = "DEMO";
 
     private Message msg;
 
     @Command(aliases = {"!wolfram", "!wa"}, usage = "!wolfram <Query>", description = "Search wolframalpha")
-    public void onCommand(DiscordApi api, User user, TextChannel channel, String[] args) {
+    public void onCommand(Message command, Server server, User user, TextChannel channel, String[] args) {
         long epoch = System.currentTimeMillis();
         String url = query.replace("<QUERY>", String.join("%20", args))+key;
         String link = queryLink.replace("<QUERY>", String.join("%20", args));
+        if (!(ChannelUtil.isNonPublicChannel(channel) || ChannelUtil.isOffTopic(channel) || RoleUtil.isStaff(user, server))) {
+            command.addReaction("\uD83D\uDEAB");
+            return;
+        }
         channel.sendMessage(new EmbedBuilder().setTitle("Querying WolframAlpha")).thenAcceptAsync(message -> msg = message);
         try {
-            String reply = "Yes";
+            String reply;
             URLConnection connection = new URL(url).openConnection();
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             reply = reader.lines().collect(Collectors.joining("\n"));

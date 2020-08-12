@@ -3,9 +3,11 @@ package dev.laarryy.wazowski.commands;
 import de.btobastian.sdcf4j.Command;
 import de.btobastian.sdcf4j.CommandExecutor;
 
+import dev.laarryy.wazowski.util.RoleUtil;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.activity.ActivityType;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
@@ -18,8 +20,8 @@ import java.util.List;
 public class PresenceCommand implements CommandExecutor {
 
     @Command(aliases = {"!presence", ".presence"}, usage = "!presence <status>", description = "Sets the status presence of the bot")
-    public void onCommand(DiscordApi api, String[] args, TextChannel channel, User user, Server server) {
-        if (hasPermission(user.getRoles(server)) && args.length >= 2) {
+    public void onCommand(DiscordApi api, String[] args, TextChannel channel, User user, Server server, Message message) {
+        if (RoleUtil.isStaff(user, server) && args.length >= 2) {
             String type = args[0].toUpperCase();
             String url = args[args.length-1];
             LinkedList<String> status = new LinkedList(Arrays.asList(args));
@@ -34,16 +36,8 @@ public class PresenceCommand implements CommandExecutor {
             } catch (Exception e) {
                 channel.sendMessage("Invalid activity use: " + Arrays.toString(ActivityType.values()));
             }
+        } else {
+            message.addReaction("\uD83D\uDEAB");
         }
-    }
-
-    public Boolean hasPermission(List<Role> roles) { //TODO one class to rule them all
-        for (Role role : roles) {
-            String roleId = role.getIdAsString();
-            if ((roleId.equals(Constants.ROLE_MODERATOR) || roleId.equals(Constants.ROLE_ADMIN))) {
-                return true;
-            }
-        }
-        return false;
     }
 }

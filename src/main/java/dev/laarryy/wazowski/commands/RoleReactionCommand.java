@@ -28,13 +28,13 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
     public RoleReactionCommand(DiscordApi api) {
         api.addListener(this);
         roleMap.put("\uD83D\uDCAD", Constants.ROLE_CHAT_UPDATES);
-        roleMap.put("\uD83D\uDC68", Constants.ROLE_PROFESSIONS_UPDATES);
+        /*roleMap.put("\uD83D\uDC68", Constants.ROLE_PROFESSIONS_UPDATES);
         roleMap.put("\uD83D\uDC7D", Constants.ROLE_SYSOUT_UPDATES);
         roleMap.put("\uD83D\uDEEB", Constants.ROLE_TELEPORTS_UPDATES);
         roleMap.put("\uD83E\uDDCA", Constants.ROLE_COOLDOWNS_UPDATES);
         roleMap.put("\uD83D\uDD28", Constants.ROLE_KITS_UPDATES);
         roleMap.put("\uD83D\uDD2B", Constants.ROLE_GUNPOWDER_UPDATES);
-        roleMap.put("\uD83E\uDD9C", Constants.ROLE_CHATGAMES_UPDATES);
+        roleMap.put("\uD83E\uDD9C", Constants.ROLE_CHATGAMES_UPDATES);*/
 
     }
 
@@ -79,7 +79,7 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
                     case "732527807216877608": //Carbon
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_CHAT_UPDATES).get());
                         break;
-                    case "737570032766287892": //Professions
+                    /*case "737570032766287892": //Professions
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_PROFESSIONS_UPDATES).get());
                         break;
                     case "737570162584191057": //Sysout
@@ -102,7 +102,7 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
                         break;
                     case "738239418015678574": //Test
                         broadcast(String.join(" ", args), channel, server.getRoleById(Constants.ROLE_CHATGAMES_UPDATES).get());
-                        break;
+                        break;*/
                     default:
                         channel.sendMessage(user.getMentionTag(), new EmbedBuilder().setTitle("Invalid update channel").setColor(Color.RED));
                 }
@@ -129,14 +129,14 @@ public class RoleReactionCommand implements CommandExecutor, ReactionAddListener
 
         embed.setColor(Color.GREEN);
         embed.addField("Subscribe to plugin updates",
-                "```Click the \uD83D\uDCAD to subscribe to Carbon" +
-                        "\nClick the \uD83D\uDC68 to subscribe to Professions" +
+                "```Click the \uD83D\uDCAD to subscribe to Carbon```");
+                       /* "\nClick the \uD83D\uDC68 to subscribe to Professions" +
                         "\nClick the \uD83D\uDC7D to subscribe to Sysout" +
                         "\nClick the \uD83D\uDEEB to subscribe to Teleports" +
                         "\nClick the \uD83E\uDDCA to subscribe to Cooldowns" +
                         "\nClick the \uD83D\uDD28 to subscribe to Kits" +
                         "\nClick the \uD83D\uDD2B to subscribe to Gunpowder" +
-                        "\nClick the \uD83E\uDD9C to subscribe to ChatGames```");
+                        "\nClick the \uD83E\uDD9C to subscribe to ChatGames*/
         return embed;
     }
 

@@ -4,12 +4,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.btobastian.sdcf4j.Command;
 import de.btobastian.sdcf4j.CommandExecutor;
+import dev.laarryy.wazowski.util.ChannelUtil;
+import dev.laarryy.wazowski.util.RoleUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.apache.commons.lang.StringUtils;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
+import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 
 import java.awt.*;
@@ -17,12 +21,16 @@ import java.util.Objects;
 
 public class XkcdCommand implements CommandExecutor {
 
-    private String searchURL = "https://relevantxkcd.appspot.com/process?action=xkcd&query=%s";
-    private ObjectMapper mapper = new ObjectMapper();
-    private OkHttpClient client = new OkHttpClient.Builder().build();
+    private final String searchURL = "https://relevantxkcd.appspot.com/process?action=xkcd&query=%s";
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final OkHttpClient client = new OkHttpClient.Builder().build();
 
     @Command(aliases = {"!xkcd", "!.xkcd"}, usage = "!xkcd <Query>", description = "Search xkcd")
-    public void onCommand(DiscordApi api, User user, TextChannel channel, String[] args) {
+    public void onCommand(Server server, User user, TextChannel channel, String[] args, Message message) {
+        if (!(ChannelUtil.isOffTopic(channel) || ChannelUtil.isNonPublicChannel(channel) || RoleUtil.isStaff(user, server))) {
+            message.addReaction("\uD83D\uDEAB");
+            return;
+        }
         if (args.length >= 1) {
             String id = search(String.join(" ", args));
             if (id != null) {
@@ -60,5 +68,4 @@ public class XkcdCommand implements CommandExecutor {
         }
         return null;
     }
-
 }
