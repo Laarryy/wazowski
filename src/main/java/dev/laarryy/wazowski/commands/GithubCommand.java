@@ -10,6 +10,8 @@ import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.exception.MissingPermissionsException;
 import org.javacord.api.util.logging.ExceptionLogger;
 import dev.laarryy.wazowski.util.BStatsUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
@@ -17,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GithubCommand implements CommandExecutor {
-
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     Map<String, String> shortcuts = new HashMap<>();
 
     String repos = "https://api.github.com/repos/%s";
@@ -57,7 +59,6 @@ public class GithubCommand implements CommandExecutor {
 
     @Command(aliases = {"!github", "!gh"}, usage = "!github <username/repo> [issue #]", description = "Shows some stats about the given repository.")
     public void onCommand(DiscordApi api, TextChannel channel, String[] args, Message message) {
-
         if (args.length == 1) {
             if (shortcuts.containsKey(args[0])) {
                 channel.sendMessage(makeInfoEmbed(api, shortcuts.get(args[0])));
@@ -84,7 +85,7 @@ public class GithubCommand implements CommandExecutor {
         }
     }
 
-    @Command(aliases = {".issuesclosed", ".ic", "!ic", "!issuesclosed"}, usage = "!issuesclosed", description = "Shows developer commitment to a repo")
+    @Command(aliases = {".issuesclosed", ".ic", "!ic", "!issuesclosed"}, usage = "!issuesclosed <repo>", description = "Shows developer commitment to a repo")
     public void onIc(DiscordApi api, TextChannel channel, String[] args) {
         if (args.length == 1 && shortcuts.containsKey(args[0].toLowerCase())) {
             try {
@@ -94,8 +95,8 @@ public class GithubCommand implements CommandExecutor {
                         .setTitle(String.format(shortcuts.get(args[0]) + " has %s closed issues", repo.get("total_count").asText()))
                         .setUrl("https://github.com/" + shortcuts.get(args[0]))
                 );
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (IOException ex) {
+                logger.error(ex.getMessage(), ex);
             }
         } else {
             try {
@@ -106,16 +107,17 @@ public class GithubCommand implements CommandExecutor {
                         .setUrl("https://github.com/" + args[0])
                 );
             } catch (NullPointerException ex) {
+                // TODO: Remove try/catch for NPE
                 EmbedBuilder embed = new EmbedBuilder();
                 embed.setTitle("Repository not found!");
                 embed.setColor(new Color(0xFF0000));
                 channel.sendMessage(embed);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ex) {
+                logger.error(ex.getMessage(), ex);
             }
         }
     }
-    @Command(aliases = {".issuesopen", ".io", "!io", "!issuesopen"}, usage = "!issuesclosed", description = "Shows dark side of developer commitment to a repo")
+    @Command(aliases = {".issuesopen", ".io", "!io", "!issuesopen"}, usage = "!issuesopen <repo>", description = "Shows dark side of developer commitment to a repo")
     public void onIo(DiscordApi api, TextChannel channel, String[] args) {
         if (args.length == 1 && shortcuts.containsKey(args[0].toLowerCase())) {
             try {
@@ -125,8 +127,8 @@ public class GithubCommand implements CommandExecutor {
                         .setTitle(String.format(shortcuts.get(args[0]) + " has %s open issues", repo.get("total_count").asText()))
                         .setUrl("https://github.com/" + shortcuts.get(args[0]))
                 );
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (IOException ex) {
+                logger.error(ex.getMessage(), ex);
             }
         } else {
             try {
@@ -137,12 +139,13 @@ public class GithubCommand implements CommandExecutor {
                         .setUrl("https://github.com/" + args[0])
                 );
             } catch (NullPointerException ex) {
+                // TODO: Remove try/catch for NPE
                 EmbedBuilder embed = new EmbedBuilder();
                 embed.setTitle("Repository not found!");
                 embed.setColor(new Color(0xFF0000));
                 channel.sendMessage(embed);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ex) {
+                logger.error(ex.getMessage(), ex);
             }
         }
     }
@@ -176,8 +179,8 @@ public class GithubCommand implements CommandExecutor {
             embed.setTimestampToNow();
 
             return embed;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
             embed.setTitle("Unknown repo!").setColor(Color.RED);
         }
         return embed;
@@ -199,15 +202,15 @@ public class GithubCommand implements CommandExecutor {
             embed.addInlineField("Comments", String.format("```%s```", issue.get("comments").asText()));
 
             String body = issue.get("body").asText();
-            int maxLength = (body.length() < 1020) ? body.length() : 1020;
+            int maxLength = Math.min(body.length(), 1020);
 
             embed.addField("Issue", issue.get("body").asText().substring(0, maxLength) + " ...");
 
             embed.setTimestampToNow();
 
             return embed;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
             embed.setTitle("Issue not found!").setColor(Color.RED);
         }
         return embed;

@@ -12,13 +12,12 @@ import org.javacord.api.entity.user.User;
 import java.util.stream.Collectors;
 
 public class RoleCheckCommand implements CommandExecutor {
-
     @Command(aliases = {"!rolecheck", ".rolecheck"}, usage = "!rolecheck <User>", description = "Checks users' role")
     public void onCommand(TextChannel channel, String[] args, Message message, Server server, User user) {
         if (message.getUserAuthor().isPresent()) {
             if (args.length >= 1 && RoleUtil.isStaff(user, server)) {
                 String string = "User Roles```";
-                if (message.getAuthor().canKickUsersFromServer() || message.getMentionedUsers().size() >= 1) {
+                if (message.getAuthor().canKickUsersFromServer() || !message.getMentionedUsers().isEmpty()) {
                     for (User mentionedUser : message.getMentionedUsers()) {
                         channel.sendMessage("User Roles for " + mentionedUser.getName() + String.format("```%s```", mentionedUser.getRoles(server).stream().map(Role::getName).collect(Collectors.joining(", "))));
                     }
@@ -34,3 +33,4 @@ public class RoleCheckCommand implements CommandExecutor {
         }
     }
 }
+

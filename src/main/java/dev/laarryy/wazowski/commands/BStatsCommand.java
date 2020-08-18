@@ -20,12 +20,9 @@ import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.concurrent.CompletionException;
 
 public class BStatsCommand implements CommandExecutor {
-
-    /**
-     * The logger for this class.
-     */
     private static final Logger logger = LoggerFactory.getLogger(BStatsCommand.class);
 
     @Command(aliases = {"!bStats"}, usage = "!bStats <pluginName>", description = "Shows some stats about the given plugin.")
@@ -49,8 +46,6 @@ public class BStatsCommand implements CommandExecutor {
                 JsonNode software = bStatsUtil.getSoftwareById(softwareId).join();
                 String softwareName = software.get("name").asText();
                 String softwareUrl = software.get("url").asText();
-                InputStream signatureAsStream = convertSignatureImageToJpeg(
-                        "https://bstats.org/signatures/" + softwareUrl + "/" + name + ".svg");
                 int serverCount = bStatsUtil.getLineChartData(id, "servers").join();
                 int playerCount = bStatsUtil.getLineChartData(id, "players").join();
 
@@ -60,12 +55,11 @@ public class BStatsCommand implements CommandExecutor {
                 embed.addInlineField("\uD83D\uDD0C Servers", "```\n" + String.valueOf(serverCount) + "\n```");
                 embed.addInlineField("\uD83D\uDC76 Players", "```\n" + String.valueOf(playerCount) + "\n```");
                 embed.addInlineField("⚙ Software", "```\n" + softwareName + "\n```");
-                embed.setImage(signatureAsStream, "jpg");
                 embed.setTimestampToNow();
 
                 // Send the embed
                 channel.sendMessage(embed).join();
-            }).exceptionally(ExceptionLogger.get(MissingPermissionsException.class));
+            }).exceptionally(ExceptionLogger.get(MissingPermissionsException.class)).exceptionally(ExceptionLogger.get(CompletionException.class));
         }
 
         // No plugin name provided. Send help message.
@@ -78,12 +72,6 @@ public class BStatsCommand implements CommandExecutor {
         }
     }
 
-    /**
-     * Converts a svg bStats signature image to a jpeg image.
-     *
-     * @param url The url to the signature image.
-     * @return An input stream for the jpeg image.
-     */
     private InputStream convertSignatureImageToJpeg(String url) {
         // Create a JPEG transcoder
         JPEGTranscoder t = new JPEGTranscoder();
@@ -108,7 +96,4 @@ public class BStatsCommand implements CommandExecutor {
 
         return new ByteArrayInputStream(outputStream.toByteArray());
     }
-
-
-
 }

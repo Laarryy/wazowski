@@ -16,7 +16,6 @@ import org.javacord.api.entity.user.User;
 import java.awt.*;
 
 public class EmbedCommand implements CommandExecutor {
-
     EmbedUtil embedUtil = new EmbedUtil();
 
     @Command(aliases = {"!embed", ".embed"}, usage = "!embed <url>", description = "Makes an embed from a json text")
@@ -26,15 +25,17 @@ public class EmbedCommand implements CommandExecutor {
             channel.sendMessage("This command must be done in #off-topic");
             return;
         }
+
         if (args.length == 0) {
             channel.sendMessage(new EmbedBuilder().setTitle("Invalid URL").setColor(Color.RED));
             return;
         }
+
         if (RoleUtil.isStaff(user, server)) {
             channel.sendMessage(user.getMentionTag(), embedUtil.parseString(String.join(" ", args), user, server));
-        } else if (ChannelUtil.isNonPublicChannel(channel) || ChannelUtil.isOffTopic(channel)) {
+        } else if (channel.getIdAsString().equals(Constants.CHANNEL_OFFTOPIC)) {
             channel.sendMessage(user.getMentionTag(), embedUtil.parseString(String.join(" ", args), user, server));
         } else command.addReaction("\uD83D\uDEAB");
     }
-
 }
+

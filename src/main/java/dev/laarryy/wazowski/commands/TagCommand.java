@@ -16,6 +16,8 @@ import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
 import dev.laarryy.wazowski.util.EmbedUtil;
 import dev.laarryy.wazowski.util.KeywordsUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
@@ -29,6 +31,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 public class TagCommand implements CommandExecutor, MessageCreateListener {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Map<String, Factoid> tagMap = new HashMap<>();
     EmbedUtil util = new EmbedUtil();
@@ -42,8 +45,8 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
                 Factoid userTag = mapper.readValue(jsonTags.get(i).toString(), Factoid.class);
                 tagMap.put(userTag.name, userTag);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
         }
     }
 
@@ -68,13 +71,13 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
             message.addReaction("\uD83D\uDEAB");
             return;
         }
-        String s = "";
+        StringBuilder s = new StringBuilder();
         ArrayList<String> tagsList = new ArrayList<>(tagMap.keySet());
         Collections.sort(tagsList);
         for (String key : tagsList) {
-            s += String.format("%s  ", key);
+            s.append(String.format("%s  ", key));
         }
-        channel.sendMessage(new EmbedBuilder().setTitle("Active Tags").setDescription(String.format("```%s```", s)).setColor(Color.GREEN));
+        channel.sendMessage(new EmbedBuilder().setTitle("Active Tags").setDescription(String.format("```%s```", s.toString())).setColor(Color.GREEN));
     }
 
     @Command(aliases = {"!tagset", "?tagset"}, usage = "!tagset <name> [message]", description = "Set a new tag")
@@ -122,10 +125,12 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
                     ev.getMessage().delete();
                     factoid = factoid.substring(5);
                 }
-                if (factoid.startsWith("<embed>") || factoid.startsWith("<json>")) {
-                    ev.getChannel().sendMessage(util.parseString(factoid, ev.getMessage().getUserAuthor().get(), ev.getServer().get(), args));
-                } else {
-                    ev.getChannel().sendMessage(new KeywordsUtil(factoid, ev.getMessage().getUserAuthor().get(), ev.getServer().get(), args).replace());
+                if (ev.getMessage().getUserAuthor().isPresent() && ev.getServer().isPresent()) {
+                    if (factoid.startsWith("<embed>") || factoid.startsWith("<json>")) {
+                        ev.getChannel().sendMessage(util.parseString(factoid, ev.getMessage().getUserAuthor().get(), ev.getServer().get(), args));
+                    } else {
+                        ev.getChannel().sendMessage(new KeywordsUtil(factoid, ev.getMessage().getUserAuthor().get(), ev.getServer().get(), args).replace());
+                    }
                 }
             }
         }
@@ -139,8 +144,8 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
     public void saveTags() {
         try {
             mapper.writerWithDefaultPrettyPrinter().withRootName("tags").writeValue(new File("./factoids.json"), tagMap.values());
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
         }
     }
 
@@ -172,6 +177,5 @@ public class TagCommand implements CommandExecutor, MessageCreateListener {
             this.modified = Instant.now().toString();
         }
     }
-
 }
 

@@ -6,12 +6,12 @@ import dev.laarryy.wazowski.util.ChannelUtil;
 import dev.laarryy.wazowski.util.RoleUtil;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.Message;
-import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 
 import java.awt.Color;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class UserInfoCommand implements CommandExecutor {
     public void onCommand(User cmdSender, Server server, Message message, TextChannel channel) {
         if (RoleUtil.isStaff(cmdSender, server)) {
             if (message.getUserAuthor().isPresent()) {
-                List<User> users = message.getMentionedUsers().isEmpty() ? List.of(message.getUserAuthor().get()) : message.getMentionedUsers();
+                List<User> users = message.getMentionedUsers().isEmpty() ? Collections.singletonList(message.getUserAuthor().get()) : message.getMentionedUsers();
                 for (User user : users) {
                     if (user.getJoinedAtTimestamp(server).isPresent()) {
                         EmbedBuilder embed = new EmbedBuilder();

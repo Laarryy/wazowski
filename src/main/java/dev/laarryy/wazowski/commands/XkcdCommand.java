@@ -15,11 +15,15 @@ import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.Objects;
 
 public class XkcdCommand implements CommandExecutor {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String searchURL = "https://relevantxkcd.appspot.com/process?action=xkcd&query=%s";
     private final ObjectMapper mapper = new ObjectMapper();
@@ -34,7 +38,10 @@ public class XkcdCommand implements CommandExecutor {
         if (args.length >= 1) {
             String id = search(String.join(" ", args));
             if (id != null) {
-                JsonNode node = xkcd_info(id);
+                JsonNode node = xkcdInfo(id);
+                if (node == null) {
+                    return;
+                }
                 EmbedBuilder embed = new EmbedBuilder().setColor(Color.YELLOW);
                 String link = node.get("link").asText();
                 embed.setTitle("xkcd: " + node.get("safe_title").asText());
@@ -49,22 +56,22 @@ public class XkcdCommand implements CommandExecutor {
     private String search(String query) {
         try {
             Request request = new Request.Builder().url(String.format(searchURL, query)).build();
-            String response = client.newCall(request).execute().body().string().split(" ")[2].replaceAll("\n","");//.replaceAll("\\D+"," ")
+            String response = Objects.requireNonNull(client.newCall(request).execute().body()).string().split(" ")[2].replaceAll("\n","");//.replaceAll("\\D+"," ")
             return StringUtils.isNumeric(response) ? response : null;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
         }
         return null;
     }
 
-    private JsonNode xkcd_info(String comicNum)  {
+    private JsonNode xkcdInfo(String comicNum)  {
         try {
             Request request = new Request.Builder()
                     .url(String.format("https://xkcd.com/%s/info.0.json", comicNum))
                     .build();
             return mapper.readTree(Objects.requireNonNull(client.newCall(request).execute().body()).string());
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
         }
         return null;
     }

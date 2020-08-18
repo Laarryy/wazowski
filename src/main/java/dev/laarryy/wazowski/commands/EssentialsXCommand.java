@@ -4,16 +4,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.btobastian.sdcf4j.Command;
 import de.btobastian.sdcf4j.CommandExecutor;
+import dev.laarryy.wazowski.Constants;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.user.User;
 import dev.laarryy.wazowski.util.PagedEmbed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,17 +27,17 @@ import java.util.Map;
 import java.util.Objects;
 
 public class EssentialsXCommand implements CommandExecutor {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-
-    private static String itemdbURL = "https://raw.githubusercontent.com/EssentialsX/Essentials/2.x/Essentials/src/items.json";
-    private static String commanddbURL = "https://raw.githubusercontent.com/Xeyame/essinfo.xeya.me/master/data/commands.json";
-    private static String permissionsdbURL = "https://raw.githubusercontent.com/Xeyame/essinfo.xeya.me/master/data/permissions.json";
+    private static final String itemdbURL = "https://raw.githubusercontent.com/EssentialsX/Essentials/2.x/Essentials/src/items.json";
+    private static final String commanddbURL = "https://raw.githubusercontent.com/Xeyame/essinfo.xeya.me/master/data/commands.json";
+    private static final String permissionsdbURL = "https://raw.githubusercontent.com/Xeyame/essinfo.xeya.me/master/data/permissions.json";
 
     private JsonNode essxCommands;
     private JsonNode essxPermissions;
-    private Map<String, List<String>> itemDb = new HashMap<>();
+    private final Map<String, List<String>> itemDb = new HashMap<>();
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
     private static final OkHttpClient client = new OkHttpClient.Builder().build();
 
     public EssentialsXCommand() {
@@ -40,57 +45,59 @@ public class EssentialsXCommand implements CommandExecutor {
             essxCommands = mapper.readTree(new File("./essx_commands.json"));
             JsonNode cmdb2 =  mapper.readTree(Objects.requireNonNull(client.newCall(new Request.Builder().url(commanddbURL).build()).execute().body()).string());
             if (cmdb2.size() > essxCommands.size()) {
-                System.out.println("Updating Essentials CommandsDB.");
+                logger.debug("Updating Essentials CommandsDB.");
                 updateCommandsDB();
             }
         } catch (FileNotFoundException ex) {
-            System.out.println("Acquiring Essentials CommandsDB");
+            logger.debug("Acquiring Essentials CommandsDB");
             updateCommandsDB();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
         }
 
         try {
             essxPermissions = mapper.readTree(new File("./essx_perms.json"));
             JsonNode permdb2 =  mapper.readTree(Objects.requireNonNull(client.newCall(new Request.Builder().url(permissionsdbURL).build()).execute().body()).string());
             if (permdb2.size() > essxPermissions.size()) {
-                System.out.println("Updating Essentials PermsDB.");
+                logger.debug("Updating Essentials PermsDB.");
                 updatePermissionsDB();
             }
         } catch (FileNotFoundException ex) {
-            System.out.println("Acquiring Essentials PermissionsDB");
+            logger.debug("Acquiring Essentials PermissionsDB");
             updatePermissionsDB();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
         }
 
         try {
             JsonNode essxItemDB = mapper.readTree(new File("./essx_items.json"));
 
             Request request = new Request.Builder().url(itemdbURL).build();
-            JsonNode essxItemDB2 =  mapper.readTree(Objects.requireNonNull(client.newCall(request).execute().body()).string().replace("#version: ${full.version}\n" +
-                    "# This file is for internal EssentialsX usage.\n" +
-                    "# We recommend using custom_items.yml to add custom aliases.", ""));
+            JsonNode essxItemDB2 =  mapper.readTree(Objects.requireNonNull(client.newCall(request).execute().body()).string().replace("#version: ${full.version}", ""));
 
             if (essxItemDB2.size() > essxItemDB.size()) {
-                System.out.println("Updating Essentials ItemDB.");
+                logger.debug("Updating Essentials ItemDB.");
                 updateItemDB(essxItemDB2);
             } else {
                 parseItemDB(essxItemDB);
             }
-        } catch (FileNotFoundException e) {
-            System.out.println("Acquiring Essentials ItemDB");
+        } catch (FileNotFoundException ex) {
+            logger.debug("Acquiring Essentials ItemDB", ex);
             updateItemDB(null);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
         }
     }
 
     @Command(aliases = {"!essc", ".essc"}, usage = "!essc <command>", description = "Show info about an EssentialsX command")
-    public void onCommand(String[] args, User user, TextChannel textChannel) {
+    public void onCommand(String[] args, User user, TextChannel textChannel, MessageAuthor messageAuthor) {
+        if (!textChannel.getIdAsString().equals(Constants.CHANNEL_OFFTOPIC)) {
+            textChannel.sendMessage("Please do this in #off-topic");
+            return;
+        }
         if (args.length >= 1) {
             List<JsonNode> commands = searchCommands(args[0]);
-            if (commands.size() >= 1) {
+            if (!commands.isEmpty()) {
                 EmbedBuilder embed = new EmbedBuilder()
                         .setColor(new Color(11825408))
                         .setTitle("Command Information")
@@ -110,9 +117,13 @@ public class EssentialsXCommand implements CommandExecutor {
 
     @Command(aliases = {"!essp", ".essp"}, usage = "!essp <permission>", description = "Show info about an EssentialsX permission")
     public void onPermCommand(String[] args, User user, TextChannel textChannel) {
+        if (!textChannel.getIdAsString().equals(Constants.CHANNEL_OFFTOPIC)) {
+            textChannel.sendMessage("Please do this in #off-topic");
+            return;
+        }
         if (args.length >= 1) {
             List<JsonNode> perm = searchPermissions(args[0]);
-            if (perm.size() != 0) {
+            if (!perm.isEmpty()) {
                 EmbedBuilder embed = new EmbedBuilder()
                         .setColor(new Color(11825408))
                         .setTitle("Permission Information")
@@ -131,9 +142,13 @@ public class EssentialsXCommand implements CommandExecutor {
 
     @Command(aliases = {"!itemdb", ".itemdb"}, usage = "!itemdb <item>", description = "Show info about an EssentialsX Item")
     public void onItemDbCommand(String[] args, User user, TextChannel textChannel) {
+        if (!textChannel.getIdAsString().equals(Constants.CHANNEL_OFFTOPIC)) {
+            textChannel.sendMessage("Please do this in #off-topic");
+            return;
+        }
         if (args.length >= 1) {
             List<String> items = searchItems(args[0]);
-            if (items.size() != 0) {
+            if (!items.isEmpty()) {
                 EmbedBuilder embed = new EmbedBuilder()
                         .setColor(new Color(11825408))
                         .setTitle("Essentials ItemDB")
@@ -173,9 +188,9 @@ public class EssentialsXCommand implements CommandExecutor {
 
     private List<String> searchItems(String param) {
         List<String> result = new ArrayList<>();
-        for (String s : itemDb.keySet()) {
-            if (s.contains(param) || itemDb.get(s).stream().anyMatch(str -> str.contains(param))) {
-                result.add(s);
+        for (Map.Entry<String, List<String>> s : itemDb.entrySet()) {
+            if (s.getKey().contains(param) || s.getValue().stream().anyMatch(str -> str.contains(param))) {
+                result.add(s.getKey());
             }
         }
         return result;
@@ -185,8 +200,8 @@ public class EssentialsXCommand implements CommandExecutor {
         try {
             essxCommands = mapper.readTree(cleanUp(Objects.requireNonNull(client.newCall(new Request.Builder().url(commanddbURL).build()).execute().body()).string()));
             mapper.writerWithDefaultPrettyPrinter().writeValue(new File("./essx_commands.json"), essxCommands);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
         }
     }
 
@@ -194,8 +209,8 @@ public class EssentialsXCommand implements CommandExecutor {
         try {
             essxPermissions = mapper.readTree(cleanUp(Objects.requireNonNull(client.newCall(new Request.Builder().url(permissionsdbURL).build()).execute().body()).string()));
             mapper.writerWithDefaultPrettyPrinter().writeValue(new File("./essx_perms.json"), essxPermissions);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
         }
     }
 
@@ -210,7 +225,7 @@ public class EssentialsXCommand implements CommandExecutor {
             }
             mapper.writerWithDefaultPrettyPrinter().writeValue(new File("./essx_items.json"), essxItemDB2);
             parseItemDB(essxItemDB2);
-        } catch (Exception ignored) {}
+        } catch (IOException ignored) { }
     }
 
     private void parseItemDB(JsonNode essxItemDB) {
@@ -224,7 +239,6 @@ public class EssentialsXCommand implements CommandExecutor {
         }
     }
 
-    private String cleanUp(String xeyamesMess) { //https://i.imgur.com/InxkMUu.png
-        return xeyamesMess.replace("&lt;", "<").replace("&gt;", ">");
-    }
+    // https://i.imgur.com/InxkMUu.png
+    private String cleanUp(String xeyamesMess) { return xeyamesMess.replace("&lt;", "<").replace("&gt;", ">"); }
 }

@@ -10,6 +10,8 @@ import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -20,6 +22,7 @@ import java.net.URLConnection;
 import java.util.stream.Collectors;
 
 public class WolframAlphaCommand implements CommandExecutor {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String query = "https://api.wolframalpha.com/v1/result?i=<QUERY>&appid=PUJ6L4-JT7RJGL74K&";
     private final String queryLink = "https://www.wolframalpha.com/input/?i=<QUERY>";
@@ -52,9 +55,9 @@ public class WolframAlphaCommand implements CommandExecutor {
                         msg.edit(user.getMentionTag(), new EmbedBuilder().setColor(Color.RED).setTitle("Unable to query WolframAlpha"));
                         return null;
                     });
-        } catch (IOException e) {
+        } catch (IOException ex) {
             msg.edit(user.getMentionTag(), new EmbedBuilder().setColor(Color.RED).setTitle("Unable to query WolframAlpha"));
-            e.printStackTrace();
+            logger.error(ex.getMessage(), ex);
         }
     }
 }
